@@ -12,7 +12,7 @@ docker_build:
   only:
     - main
   tags:
-    - prod
+    - build
     - docker
   script:
     # set env
@@ -21,6 +21,8 @@ docker_build:
     - echo "APP_PORT=$APP_PORT" >> .env
 
     - echo "DOMAIN_APPLICATION=$DOMAIN_APPLICATION" >> .env
+
+    - echo DATE_VERSION=$(date +%d-%m-%Y) >> .env
 
     # set sentry
     - echo "SENTRY_DEBUG=$SENTRY_DEBUG" >> .env
@@ -35,13 +37,16 @@ docker_build:
 
     # perform login on docker registry
     # - docker login -u $CI_REGISTER_USER -p $REGISTRY_PASSWORD $CI_REGISTRY
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker login -u $CI_REGISTRY
 
     # build project images
-    - docker compose build
+    - docker compose -f docker-compose.build.yml build
 
     # push project images to registry
-    - docker compose push
+    - docker compose -f docker-compose.build.yml push
+
+    - docker system prune -f
+
 
 docker_up:
   stage: deploy
@@ -49,7 +54,7 @@ docker_up:
   only:
     - main
   tags:
-    - docker
+    - ssh
     - prod
   script:
     # perform login on docker registry
@@ -57,6 +62,6 @@ docker_up:
 
     - docker compose pull
 
-    - docker stack deploy -c <(docker compose -f docker-compose.yml config | tail -n +2) scientific_congress_manager_api
+    - docker stack deploy -c <(docker compose -f docker-compose.yml config | tail -n +2) admin_panel
 
     - docker system prune -f
