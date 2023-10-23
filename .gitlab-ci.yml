@@ -1,0 +1,62 @@
+stages:
+  - test
+  - build
+  - deploy
+
+variables:
+  GIT_CLEAN_FLAGS: none
+
+docker_build:
+  stage: build
+  environment: prod
+  only:
+    - main
+  tags:
+    - prod
+    - docker
+  script:
+    # set env
+    - echo "ALLOWED_ORIGINS_PATTERN=$ALLOWED_ORIGINS_PATTERN" >> .env
+
+    - echo "APP_PORT=$APP_PORT" >> .env
+
+    - echo "DOMAIN_APPLICATION=$DOMAIN_APPLICATION" >> .env
+
+    # set sentry
+    - echo "SENTRY_DEBUG=$SENTRY_DEBUG" >> .env
+    - echo "SENTRY_DNS=$SENTRY_DNS" >> .env
+    - echo "SENTRY_TRACE_RATE=$SENTRY_TRACE_RATE" >> .env
+
+    # keycloak
+    - echo "KEYCLOACK_BASE=$KEYCLOACK_BASE" >> .env
+    - echo "KEYCLOACK_REALM=$KEYCLOACK_REALM" >> .env
+    - echo "KEYCLOACK_CLIENT_ID=$KEYCLOACK_CLIENT_ID" >> .env
+    - echo "KEYCLOACK_SECRET=$KEYCLOACK_SECRET" >> .env
+
+    # perform login on docker registry
+    # - docker login -u $CI_REGISTER_USER -p $REGISTRY_PASSWORD $CI_REGISTRY
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+
+    # build project images
+    - docker compose build
+
+    # push project images to registry
+    - docker compose push
+
+docker_up:
+  stage: deploy
+  environment: prod
+  only:
+    - main
+  tags:
+    - docker
+    - prod
+  script:
+    # perform login on docker registry
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+
+    - docker compose pull
+
+    - docker stack deploy -c <(docker compose -f docker-compose.yml config | tail -n +2) scientific_congress_manager_api
+
+    - docker system prune -f

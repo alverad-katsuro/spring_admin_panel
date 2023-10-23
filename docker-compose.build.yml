@@ -1,0 +1,23 @@
+version: '3.9'
+
+x-service: &default-service
+  build:
+    context: .
+    dockerfile: docker/Dockerfile
+  environment:
+    - TZ=America/Belem
+  env_file:
+      - .env
+
+
+services:
+
+  backend:
+    <<: *default-service
+    image: registry.gitlab.alverad.com.br/admin-panel/spring_boot_admin_panel
+    restart: always
+
+
+  backend_api_version:
+    << : *default-service
+    image: registry.gitlab.alverad.com.br/admin-panel/spring_boot_admin_panel:${DATE_VERSION}

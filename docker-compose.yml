@@ -1,0 +1,40 @@
+version: '3.9'
+
+services:
+
+  spring_boot_admin_panel:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    env_file:
+      - .env
+    image: registry.gitlab.alverad.com.br/admin-panel/spring_boot_admin_panel
+    restart: always
+    networks:
+      - traefik-public
+    environment:
+      - TZ=America/Belem
+    deploy:
+      placement:
+        constraints:
+          - node.labels.service == api
+
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=traefik-public"
+        - "traefik.constraint-label=traefik-public"
+
+        - "traefik.http.routers.admin_panel.rule=Host(`${DOMAIN_APPLICATION}`)"
+        - "traefik.http.routers.admin_panel.entrypoints=http"
+        - "traefik.http.routers.admin_panel.middlewares=https-redirect@file"
+
+        - "traefik.http.routers.admin_panel_https.rule=Host(`${DOMAIN_APPLICATION}`)"
+        - "traefik.http.routers.admin_panel_https.entrypoints=https"
+        - "traefik.http.routers.admin_panel_https.tls=true"
+        - "traefik.http.routers.admin_panel_https.tls.certresolver={}"
+        - "traefik.http.routers.admin_panel_https.middlewares=default-headers@file"
+        - "traefik.http.services.admin_panel_https.loadbalancer.server.port=${APP_PORT}"
+
+networks:
+  traefik-public:
+    external: true

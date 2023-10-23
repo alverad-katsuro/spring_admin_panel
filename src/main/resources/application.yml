@@ -1,0 +1,56 @@
+spring:
+  application:
+    name: admin_panel
+  servlet:
+    multipart:
+      max-file-size: 10MB
+  #configuração do jackson
+  jackson:
+    default-property-inclusion: NON_NULL
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            clientId: ${KEYCLOACK_CLIENT_ID}
+            clientSecret: ${KEYCLOACK_SECRET}
+            scope: openid,email,profile
+            authorization-grant-type: authorization_code
+        provider:
+          keycloak:
+            issuer-uri: ${KEYCLOACK_BASE}/realms/${KEYCLOACK_REALM}
+            user-name-attribute: preferred_username
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOACK_BASE}/realms/${KEYCLOACK_REALM}
+          jwk-set-uri: ${KEYCLOACK_BASE}/realms/${KEYCLOACK_REALM}/protocol/openid-connect/certs
+
+sentry:
+  dsn: ${SENTRY_DNS}
+  in-app-includes:
+    - br.com.alverad.admin_panel
+  traces-sample-rate: ${SENTRY_TRACE_RATE}
+  logging:
+    minimum-event-level: error
+    minimum-breadcrumb-level: error
+
+server:
+  port: ${APP_PORT}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,auditevents,configprops,env,httptrace,loggers
+  info:
+    env:
+      enabled: false
+  endpoint:
+    health:
+      show-details: ALWAYS
+
+services:
+  registrationId: keycloak
+
+cors:
+  allowedOriginPatterns: ${ALLOWED_ORIGINS_PATTERN}
