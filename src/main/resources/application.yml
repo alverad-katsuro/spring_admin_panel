@@ -16,6 +16,7 @@ spring:
             clientSecret: ${KEYCLOACK_SECRET}
             scope: openid,email,profile
             authorization-grant-type: authorization_code
+            redirect-uri: '{baseUrl}/login/oauth2/code/{registrationId}'
         provider:
           keycloak:
             issuer-uri: ${KEYCLOACK_BASE}/realms/${KEYCLOACK_REALM}
@@ -36,6 +37,12 @@ sentry:
 
 server:
   port: ${APP_PORT}
+  forward-headers-strategy: framework
+  compression:
+    enabled: true
+    min-response-size: 2048
+    mime-types:
+      - application/json,application/xml,text/html,text/xml,text/plain,application/javascript,text/css
 
 management:
   endpoints:
@@ -54,3 +61,12 @@ services:
 
 cors:
   allowedOriginPatterns: ${ALLOWED_ORIGINS_PATTERN}
+
+
+eureka:
+
+  client:
+    registerWithEureka: true
+    fetchRegistry: true
+    serviceUrl:
+      defaultZone: http://172.17.0.1:8761/eureka/
