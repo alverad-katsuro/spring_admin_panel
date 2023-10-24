@@ -59,9 +59,6 @@ management:
 services:
   registrationId: keycloak
 
-cors:
-  allowedOriginPatterns: ${ALLOWED_ORIGINS_PATTERN}
-
 eureka:
   instance:
     prefer-ip-address: true
