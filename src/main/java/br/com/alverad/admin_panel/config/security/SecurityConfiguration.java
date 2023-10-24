@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -28,7 +29,7 @@ import lombok.RequiredArgsConstructor;
 public class SecurityConfiguration {
 
 	@Bean
-	public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
+	public SecurityFilterChain filterChain(HttpSecurity httpSecurity, RequestMatcherBuilder mvc) throws Exception {
 
 		httpSecurity.csrf(AbstractHttpConfigurer::disable)
 				.cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -48,7 +49,7 @@ public class SecurityConfiguration {
 								"/instances",
 								"/")
 						.permitAll()
-						.requestMatchers("/actuator/**").hasRole("SPRING_ACTUATOR")
+						.requestMatchers(mvc.matchers(HttpMethod.GET, "/actuator/**")).hasRole("SPRING_ACTUATOR")
 						.anyRequest().authenticated())
 				.oauth2ResourceServer(oauth2 -> oauth2
 						.jwt(Customizer.withDefaults()));
