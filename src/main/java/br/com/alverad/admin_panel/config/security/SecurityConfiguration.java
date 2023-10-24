@@ -21,6 +21,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import de.codecentric.boot.admin.server.config.AdminServerProperties;
 import lombok.RequiredArgsConstructor;
 
 @Configuration
@@ -28,28 +29,38 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecurityConfiguration {
 
-	@Bean
-	public SecurityFilterChain filterChain(HttpSecurity httpSecurity, RequestMatcherBuilder mvc) throws Exception {
+	private final LoginSuccessHandler loginSuccessHandler;
 
+	private final CustomOidcUserService customOidcUserService;
+
+	@Bean
+	public SecurityFilterChain filterChain(AdminServerProperties adminServer, HttpSecurity httpSecurity,
+			RequestMatcherBuilder mvc) throws Exception {
 		httpSecurity.csrf(AbstractHttpConfigurer::disable)
 				.cors(cors -> cors.configurationSource(corsConfigurationSource()))
-				.oauth2Login(Customizer.withDefaults())
-				.formLogin(Customizer.withDefaults())
+				.oauth2Login(e -> e.successHandler(loginSuccessHandler)
+						.userInfoEndpoint(user -> user
+								.oidcUserService(customOidcUserService)))
+				.formLogin(e -> e.disable())
 				.authorizeHttpRequests(authorize -> authorize
-						.requestMatchers(
+						.requestMatchers(mvc.matchers(HttpMethod.GET,
 								"/v3/api-docs/**",
 								"/swagger-ui/**",
 								"/swagger-ui.html",
-								"/actuator/health",
 								"/login",
 								"*/*.js",
 								"*/*.css",
-								"/actuator",
-								"/actuator/health",
+								"/sba-settings.js",
 								"/instances",
-								"/")
+								"/"))
 						.permitAll()
-						.requestMatchers(mvc.matchers(HttpMethod.GET, "/actuator/**")).hasRole("SPRING_ACTUATOR")
+						.requestMatchers(
+								adminServer.path("/actuator/info"),
+								adminServer.path("/actuator/health"),
+								adminServer.path("/login"),
+								adminServer.path("/assets/**"))
+						.permitAll()
+						.requestMatchers(adminServer.path("/actuator/**")).authenticated()
 						.anyRequest().authenticated())
 				.oauth2ResourceServer(oauth2 -> oauth2
 						.jwt(Customizer.withDefaults()));
@@ -83,7 +94,7 @@ public class SecurityConfiguration {
 						JwtGrantedAuthoritiesConverter scopesConverter = new JwtGrantedAuthoritiesConverter();
 						Collection<GrantedAuthority> allAuthorities = scopesConverter.convert(jwt);
 						allAuthorities.addAll(
-								rolesList.stream().map(role -> new SimpleGrantedAuthority("ROLE_" + role)).toList());
+								rolesList.stream().map(SimpleGrantedAuthority::new).toList());
 						return allAuthorities;
 					} else {
 						return Collections.emptyList();
