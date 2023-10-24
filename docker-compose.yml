@@ -26,7 +26,7 @@ services:
 
         - "traefik.http.routers.admin_panel.rule=Host(`${DOMAIN_APPLICATION}`)"
         - "traefik.http.routers.admin_panel.entrypoints=http"
-        - "traefik.http.routers.admin_panel.middlewares=https-redirect@file"
+        # - "traefik.http.routers.admin_panel.middlewares=https-redirect@file"
 
         - "traefik.http.routers.admin_panel_https.rule=Host(`${DOMAIN_APPLICATION}`)"
         - "traefik.http.routers.admin_panel_https.entrypoints=https"
