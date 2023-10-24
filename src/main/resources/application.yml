@@ -66,5 +66,5 @@ eureka:
   client:
     healthcheck:
       enabled: true
-    # serviceUrl:
-    #   defaultZone: http://eureka:8761/eureka/
+    serviceUrl:
+      defaultZone: http://eureka:8761/eureka/
