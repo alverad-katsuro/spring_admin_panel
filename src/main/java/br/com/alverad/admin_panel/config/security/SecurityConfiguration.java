@@ -43,9 +43,12 @@ public class SecurityConfiguration {
 								"/login",
 								"*/*.js",
 								"*/*.css",
-								"/instances")
+								"/actuator",
+								"/actuator/health",
+								"/instances",
+								"/")
 						.permitAll()
-						.requestMatchers("/actuator/**").hasRole("spring_actuator")
+						.requestMatchers("/actuator/**").hasRole("SPRING_ACTUATOR")
 						.anyRequest().authenticated())
 				.oauth2ResourceServer(oauth2 -> oauth2
 						.jwt(Customizer.withDefaults()));
