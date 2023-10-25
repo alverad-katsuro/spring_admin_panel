@@ -34,8 +34,8 @@ public class SecurityConfiguration {
 	private final CustomOidcUserService customOidcUserService;
 
 	@Bean
-	public SecurityFilterChain filterChain(AdminServerProperties adminServer, HttpSecurity httpSecurity,
-			RequestMatcherBuilder mvc) throws Exception {
+	public SecurityFilterChain filterChain(AdminServerProperties adminServer, HttpSecurity httpSecurity)
+			throws Exception {
 		httpSecurity.csrf(AbstractHttpConfigurer::disable)
 				.cors(cors -> cors.configurationSource(corsConfigurationSource()))
 				.oauth2Login(e -> e.successHandler(loginSuccessHandler)
@@ -43,16 +43,16 @@ public class SecurityConfiguration {
 								.oidcUserService(customOidcUserService)))
 				.formLogin(e -> e.disable())
 				.authorizeHttpRequests(authorize -> authorize
-						.requestMatchers(mvc.matchers(HttpMethod.GET,
+						.requestMatchers(HttpMethod.GET,
 								"/v3/api-docs/**",
 								"/swagger-ui/**",
 								"/swagger-ui.html",
 								"/login",
 								"*/*.js",
 								"*/*.css",
-								"/sba-settings.js",
+								"/**.js",
 								"/instances",
-								"/"))
+								"/")
 						.permitAll()
 						.requestMatchers(
 								adminServer.path("/actuator/info"),
@@ -60,7 +60,9 @@ public class SecurityConfiguration {
 								adminServer.path("/login"),
 								adminServer.path("/assets/**"))
 						.permitAll()
-						.requestMatchers(adminServer.path("/actuator/**")).authenticated()
+						// .requestMatchers(adminServer.path("/actuator/**")).authenticated()
+						.requestMatchers("/actuator/**").hasRole("SPRING_ACTUATOR")
+
 						.anyRequest().authenticated())
 				.oauth2ResourceServer(oauth2 -> oauth2
 						.jwt(Customizer.withDefaults()));

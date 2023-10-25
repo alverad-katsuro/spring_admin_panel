@@ -53,8 +53,10 @@ management:
     env:
       enabled: false
   endpoint:
+    loggers:
+      enabled: true
     health:
-      show-details: ALWAYS
+      show-details: when-authorized
 
 services:
   registrationId: keycloak
