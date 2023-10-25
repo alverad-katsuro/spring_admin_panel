@@ -60,7 +60,6 @@ public class SecurityConfiguration {
 								adminServer.path("/login"),
 								adminServer.path("/assets/**"))
 						.permitAll()
-						// .requestMatchers(adminServer.path("/actuator/**")).authenticated()
 						.requestMatchers("/actuator/**").hasRole("SPRING_ACTUATOR")
 
 						.anyRequest().authenticated())
