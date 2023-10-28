@@ -95,7 +95,7 @@ public class SecurityConfiguration {
 						JwtGrantedAuthoritiesConverter scopesConverter = new JwtGrantedAuthoritiesConverter();
 						Collection<GrantedAuthority> allAuthorities = scopesConverter.convert(jwt);
 						allAuthorities.addAll(
-								rolesList.stream().map(SimpleGrantedAuthority::new).toList());
+								rolesList.stream().map(role -> new SimpleGrantedAuthority("ROLE_" + role)).toList());
 						return allAuthorities;
 					} else {
 						return Collections.emptyList();
